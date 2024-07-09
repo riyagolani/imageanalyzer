@@ -15,14 +15,21 @@ function App() {
   
   useEffect(() => {
     fetchGallery();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchGallery = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await axios.get(`${SERVER_URL}/api/images`);
       setGallery(response.data);
     } catch (err) {
       console.error('Error fetching gallery:', err);
+      setError('Failed to fetch gallery. Please try again later.');
+      setGallery([]); // Ensure gallery is always an array
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -65,11 +72,17 @@ function App() {
   };
 
   const handleSearch = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await axios.get(`${SERVER_URL}/api/search?query=${searchQuery}`);
       setGallery(response.data);
     } catch (err) {
       console.error('Error searching images:', err);
+      setError('Failed to search images. Please try again later.');
+      setGallery([]); // Ensure gallery is always an array
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -110,29 +123,37 @@ function App() {
           </section>
         )}
 
-        <section className="gallery-section">
-          <h2>Image Gallery</h2>
-          <div className="search-bar">
-            <input 
-              type="text" 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-              placeholder="Search images by tag"
-              className="search-input"
-            />
-            <button onClick={handleSearch} className="search-button">Search</button>
-          </div>
+<section className="gallery-section">
+  <h2>Image Gallery</h2>
+  <div className="search-bar">
+    <input 
+      type="text" 
+      value={searchQuery} 
+      onChange={(e) => setSearchQuery(e.target.value)} 
+      placeholder="Search images by tag"
+      className="search-input"
+    />
+    <button onClick={handleSearch} className="search-button">Search</button>
+  </div>
 
-          <div className="gallery">
-        {gallery.map((image) => (
-          <div key={image.id} className="gallery-item">
-            <img src={image.imageUrl} alt={image.originalName} />
-            <p className="image-name">{image.originalName}</p>
-            <p className="image-tags">Tags: {image.tags.join(', ')}</p>
-          </div>
-        ))}
-      </div>
-        </section>
+  {isLoading ? (
+    <p>Loading gallery...</p>
+  ) : error ? (
+    <p className="error-message">{error}</p>
+  ) : gallery.length > 0 ? (
+    <div className="gallery">
+      {gallery.map((image) => (
+        <div key={image.id} className="gallery-item">
+          <img src={image.imageUrl} alt={image.originalName} />
+          <p className="image-name">{image.originalName}</p>
+          <p className="image-tags">Tags: {image.tags.join(', ')}</p>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p>No images found.</p>
+  )}
+</section>
       </main>
     </div>
   );
