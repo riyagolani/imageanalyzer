@@ -92,7 +92,7 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h1>Image Tag Generator</h1>
+        <h1>Generate Tags</h1>
       </header>
       <main>
         <section className="upload-section">
@@ -109,7 +109,7 @@ function App() {
             </label>
           </div>
           <button onClick={handleUpload} disabled={isLoading || !selectedFile} className="upload-button">
-            {isLoading ? 'Processing...' : 'Generate Tags'}
+            {isLoading ? 'Processing...' : 'Upload'}
           </button>
         </section>
         
