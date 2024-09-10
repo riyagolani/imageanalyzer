@@ -23,7 +23,7 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${SERVER_URL}/api/images`);
+      const response = await axios.get(`${SERVER_URL}/list-images`);
       console.log('Gallery data:', response.data);
       setGallery(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
@@ -44,27 +44,35 @@ function App() {
       setError('Please select an image file');
       return;
     }
-
+  
     setIsLoading(true);
     setError(null);
-
-    const formData = new FormData();
-    formData.append('image', selectedFile);
-
+  
     try {
-      const response = await axios.post(`${SERVER_URL}/api/process-image`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      setTags(response.data.tags);
-      fetchGallery(); // Refresh the gallery after upload
-      
-      // Clear the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      setSelectedFile(null);
+      // Read the file as a base64 string
+      const reader = new FileReader();
+      reader.readAsDataURL(selectedFile);
+      reader.onload = async () => {
+        const base64Image = reader.result.split(',')[1]; // Remove the data:image/jpeg;base64, part
+  
+        const response = await axios.post(`${SERVER_URL}/process-image`, {
+          image: base64Image,
+          filename: selectedFile.name
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        setTags(response.data.tags);
+        fetchGallery(); // Refresh the gallery after upload
+        
+        // Clear the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        setSelectedFile(null);
+      };
     } catch (err) {
       console.error('Full error object:', err);
       setError('Error processing image: ' + (err.response?.data?.error || err.message));
@@ -77,7 +85,7 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${SERVER_URL}/api/search?query=${searchQuery}`);
+      const response = await axios.get(`${SERVER_URL}/search-images?query=${searchQuery}`);
       console.log('Search data:', response.data);
       setGallery(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
